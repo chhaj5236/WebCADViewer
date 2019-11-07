@@ -8,7 +8,7 @@ Created on Sat Jul 14 23:41:31 2018
 
 from flask import Flask, render_template, request, session, abort, redirect,flash,Response,url_for,abort,json,send_from_directory
 from werkzeug.utils import secure_filename
-import core.ConfigParser as conf
+import core.CustomConfigParser as conf
 from core.CadParser import CadParser
 import os
 
@@ -35,7 +35,7 @@ def get_stat(fuuid):
         with open(server_filename) as f:
             #js=json.load(f)
             js=f.read()
-            print type(js)
+            print(type(js))
     except:
         pass
     resp = Response(js, status=200, mimetype='application/json')
@@ -55,7 +55,7 @@ def load_data(fuuid,puuid):
         with open(server_filename) as f:
             #js=json.load(f)
             js=f.read()
-            print type(js)
+            print(type(js))
     except:
         pass
     resp = Response(js, status=200, mimetype='application/json')

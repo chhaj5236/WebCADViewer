@@ -5,7 +5,7 @@ Created on Sat Jul 14 23:41:31 2018
 """
 
 import sys
-FREECADPATH = '/usr/lib/freecad/lib' # path to your FreeCAD.so or FreeCAD.dll file
+FREECADPATH = '/Applications/FreeCAD.app/Contents/Resources/lib' # path to your FreeCAD.so or FreeCAD.dll file
 sys.path.append(FREECADPATH)
 
 import FreeCAD as App
@@ -20,9 +20,9 @@ import os
 import json
 import numpy as np
 import uuid
-import ConfigParser as conf
-import ThreeJson
-import utils
+import core.CustomConfigParser as conf
+import core.ThreeJson as ThreeJson
+import core.utils as utils
 
 
 class CadParser:
@@ -38,13 +38,13 @@ class CadParser:
                 self._fuuid)
 
         utils.mkdir(self._output_dir)
-        
+
 
         self._status={}
 
 
 
-        
+
         self._fcstd_fname='{}/project.fcstd'.format(self._output_dir)
 
         if filename:
@@ -110,7 +110,7 @@ class CadParser:
         return json_response
 
 
-    
+
 
 
     def computeTolerance(self,part):
@@ -122,62 +122,62 @@ class CadParser:
             bound_max_len=max([bound_x,bound_y,bound_z])
             precision=bound_max_len/200.
             if bound_max_len<10:
-                precision=0.1 
+                precision=0.1
             return precision
         except:
             return 1
 
-    
+
     def tessellate(self,obj,uid):
-	'''Returns tessellation with specified tolerance.'''
-	#self._doc.recompute()
+        '''Returns tessellation with specified tolerance.'''
+    #self._doc.recompute()
 	# Don't fuse all objects before tessellating, just tessellate all visible objects
-	visibleObjs = []
+	# visibleObjs = []
         tolerance=self.computeTolerance(obj)
 
-	vertices = []; nVertices = 0;
-	faces = []; nFaces = 0;
+        vertices = []; nVertices = 0;
+        faces = []; nFaces = 0;
 
         is_ok=False
-	#for obj in self._objects:
+        #for obj in self._objects:
         if obj:
-		sV = nVertices;
-		if obj.isDerivedFrom("Part::Feature"): # Standard case
-		    shape = obj.Shape
-		    bMesh = False
+            sV = nVertices
+        if obj.isDerivedFrom("Part::Feature"): # Standard case
+            shape = obj.Shape
+            bMesh = False
 
-		elif obj.isDerivedFrom("Part::TopoShape"):
-		    shape = obj
-		    bMesh = False
+        elif obj.isDerivedFrom("Part::TopoShape"):
+            shape = obj
+            bMesh = False
 
-		elif obj.isDerivedFrom("Mesh::Feature"):
-			objVertices = obj.Mesh.Points
-			objFaces = obj.Mesh.Facets
-			bMesh = True
-			
-		else:
-			raise Warning("Object type not recognised.")
-		if shape:
-			try:
-				tess = shape.tessellate(tolerance) # Throws TypeError
-                                is_ok=True
-				objVertices = tess[0]
-				objFaces = tess[1]
-			except TypeError:
-				raise Warning("Accuracy parameter is of the wrong type")
+        elif obj.isDerivedFrom("Mesh::Feature"):
+            objVertices = obj.Mesh.Points
+            objFaces = obj.Mesh.Facets
+            bMesh = True
 
-		for vec in objVertices:
-			nVertices += 1
-			vertices.extend( [vec.x, vec.y, vec.z] )
-		for face in objFaces:
-			nFaces += 1
-			if len(face) == 3:
-				TYPE = 0 # To indicate triangle (see three.js JSON object notation spec)
-				if bMesh:
-					face = face.PointIndices # face.PointIndices is a tuple
-				faces.extend( [ TYPE, face[0]+sV,face[1]+sV,face[2]+sV ] )
-			else:
-				raise Warning("This face is no triangle, it has length %s" % len(face) )
+        else:
+            raise Warning("Object type not recognised.")
+        if shape:
+            try:
+                tess = shape.tessellate(tolerance) # Throws TypeError
+                is_ok=True
+                objVertices = tess[0]
+                objFaces = tess[1]
+            except TypeError:
+                raise Warning("Accuracy parameter is of the wrong type")
+
+        for vec in objVertices:
+            nVertices += 1
+            vertices.extend( [vec.x, vec.y, vec.z] )
+        for face in objFaces:
+            nFaces += 1
+            if len(face) == 3:
+                TYPE = 0 # To indicate triangle (see three.js JSON object notation spec)
+                if bMesh:
+                    face = face.PointIndices # face.PointIndices is a tuple
+                faces.extend( [ TYPE, face[0]+sV,face[1]+sV,face[2]+sV ] )
+            else:
+                raise Warning("This face is no triangle, it has length %s" % len(face) )
         if is_ok:
             data = ThreeJson.tessToJson(uid,vertices, faces, nVertices, nFaces )
             self.dumpJson(data,uid)
@@ -188,7 +188,7 @@ class CadParser:
 
 if __name__=='__main__':
     p=CadParser()
-    print p.importCAD('step/lrg.stp')
+    print(p.importCAD('step/lrg.stp'))
 
 
 
